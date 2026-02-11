@@ -24,6 +24,13 @@ const httpServer = http.createServer((req, res) => {
     return;
   }
 
+  // Health check FIRST - Render checks this immediately
+  if (req.url === '/health') {
+    res.writeHead(200, {'Content-Type': 'application/json'});
+    res.end(JSON.stringify({status: 'ok', clients: {mobile: !!mobileClient, pc: !!pcClient}}));
+    return;
+  }
+
   if (req.url === '/' || req.url === '/index.html') {
     fs.readFile(path.join(__dirname, 'index.html'), (err, data) => {
       if (err) {
@@ -44,10 +51,6 @@ const httpServer = http.createServer((req, res) => {
       res.writeHead(200, {'Content-Type': 'application/javascript'});
       res.end(data);
     });
-  } else if (req.url === '/health') {
-    // Health check endpoint for Render
-    res.writeHead(200, {'Content-Type': 'application/json'});
-    res.end(JSON.stringify({status: 'ok', clients: {mobile: !!mobileClient, pc: !!pcClient}}));
   } else {
     res.writeHead(404);
     res.end('Not found');
@@ -115,16 +118,19 @@ wss.on('connection', (ws) => {
 });
 
 // Start server - Render requires binding to 0.0.0.0 and the PORT env variable
-httpServer.listen(PORT, '0.0.0.0', () => {
+const server = httpServer.listen(PORT, '0.0.0.0', () => {
+  const actualPort = server.address().port;
   console.log('\n🚀 Rover WebRTC Cloud Server Started!\n');
   console.log('=====================================');
-  console.log('Port:', PORT);
+  console.log('Port:', actualPort);
   console.log('Host: 0.0.0.0');
   console.log('Environment:', process.env.NODE_ENV || 'development');
+  console.log('Render PORT env:', process.env.PORT);
   console.log('=====================================\n');
   console.log('✅ Server is live and ready to accept connections!');
-  console.log('✅ HTTP server listening on port', PORT);
+  console.log('✅ HTTP server listening on port', actualPort);
   console.log('✅ WebSocket server ready');
+  console.log('✅ Health check available at /health');
 });
 
 // Error handling for server
