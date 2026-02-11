@@ -5,6 +5,8 @@ const ICE_SERVERS = [
     {urls: 'stun:stun.l.google.com:19302'},
     {urls: 'stun:stun1.l.google.com:19302'},
     {urls: 'stun:stun2.l.google.com:19302'},
+    {urls: 'stun:stun3.l.google.com:19302'},
+    {urls: 'stun:stun4.l.google.com:19302'},
     {
         urls: 'turn:openrelay.metered.ca:80',
         username: 'openrelayproject',
@@ -12,6 +14,32 @@ const ICE_SERVERS = [
     },
     {
         urls: 'turn:openrelay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+    },
+    {
+        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+    },
+    {urls: 'stun:global.stun.twilio.com:3478'},
+    {
+        urls: 'turn:a.relay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+    },
+    {
+        urls: 'turn:a.relay.metered.ca:80?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+    },
+    {
+        urls: 'turn:a.relay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+    },
+    {
+        urls: 'turn:a.relay.metered.ca:443?transport=tcp',
         username: 'openrelayproject',
         credential: 'openrelayproject'
     }
@@ -85,7 +113,10 @@ async function handleIceCandidate(candidate) {
 function createPeerConnection() {
     peerConnection = new RTCPeerConnection({
         iceServers: ICE_SERVERS,
-        iceCandidatePoolSize: 10
+        iceCandidatePoolSize: 10,
+        iceTransportPolicy: 'all',
+        bundlePolicy: 'max-bundle',
+        rtcpMuxPolicy: 'require'
     });
 
     peerConnection.onicecandidate = (event) => {
