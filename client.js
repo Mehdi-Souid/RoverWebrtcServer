@@ -90,11 +90,22 @@ function createPeerConnection() {
 
     peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
+            console.log('[PC] ICE candidate:', event.candidate.type, event.candidate.candidate);
             ws.send(JSON.stringify({
                 type: 'ice-candidate',
                 candidate: event.candidate.toJSON()
             }));
+        } else {
+            console.log('[PC] ICE gathering complete');
         }
+    };
+
+    peerConnection.onconnectionstatechange = () => {
+        console.log('[PC] Connection state:', peerConnection.connectionState);
+    };
+
+    peerConnection.oniceconnectionstatechange = () => {
+        console.log('[PC] ICE connection state:', peerConnection.iceConnectionState);
     };
 
     peerConnection.ontrack = (event) => {
