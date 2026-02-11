@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TURN Server Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background: #0e4429; color: #3fb950; }
+        .error { background: #5a1e1e; color: #f85149; }
+        .info { background: #1f3a5f; color: #58a6ff; }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #238636;
+            color: white;
+            border: none;
+            border-radius: 6px;
+        }
+        button:hover { background: #2ea043; }
+    </style>
+</head>
+<body>
+    <h1>🧪 TURN Server Connectivity Test</h1>
+    <button onclick="testTurnServers()">Test TURN Servers</button>
+    <div id="results"></div>
+
+    <script>
+        const TURN_SERVERS = [
+            {
+                urls: 'turn:openrelay.metered.ca:80',
+                username: 'openrelayproject',
+                credential: 'openrelayproject'
+            },
+            {
+                urls: 'turn:openrelay.metered.ca:443',
+                username: 'openrelayproject',
+                credential: 'openrelayproject'
+            },
+            {
+                urls: 'turn:a.relay.metered.ca:80',
+                username: 'openrelayproject',
+                credential: 'openrelayproject'
+            },
+            {
+                urls: 'turn:a.relay.metered.ca:443',
+                username: 'openrelayproject',
+                credential: 'openrelayproject'
+            }
+        ];
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        async function testTurnServers() {
+            document.getElementById('results').innerHTML = '';
+            log('🚀 Starting TURN server test...', 'info');
+
+            const pc = new RTCPeerConnection({
+                iceServers: [
+                    {urls: 'stun:stun.l.google.com:19302'},
+                    ...TURN_SERVERS
+                ],
+                iceCandidatePoolSize: 10,
+                iceTransportPolicy: 'relay' // FORCE relay candidates only
+            });
+
+            let relayFound = false;
+            let candidateCount = 0;
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    candidateCount++;
+                    const type = event.candidate.type;
+                    const candidate = event.candidate.candidate;
+                    
+                    log(`📡 ICE Candidate #${candidateCount}: ${type}`, 'info');
+                    log(`   ${candidate}`, 'info');
+
+                    if (type === 'relay') {
+                        relayFound = true;
+                        log('✅ RELAY CANDIDATE FOUND! TURN servers are working!', 'success');
+                    }
+                } else {
+                    log('🏁 ICE gathering complete', 'info');
+                    
+                    if (relayFound) {
+                        log('✅ SUCCESS: TURN servers are working correctly!', 'success');
+                    } else {
+                        log('❌ FAILURE: NO relay candidates found!', 'error');
+                        log('   TURN servers are DOWN or BLOCKED', 'error');
+                    }
+                }
+            };
+
+            pc.onicegatheringstatechange = () => {
+                log(`ICE gathering state: ${pc.iceGatheringState}`, 'info');
+            };
+
+            // Create a data channel to trigger ICE gathering
+            pc.createDataChannel('test');
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+
+            log('⏳ Gathering ICE candidates... (wait 10 seconds)', 'info');
+        }
+    </script>
+</body>
+</html>
+

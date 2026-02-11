@@ -65,6 +65,19 @@ const httpServer = http.createServer((req, res) => {
     return;
   }
 
+  if (req.url === '/test-turn' || req.url === '/test-turn.html') {
+    fs.readFile(path.join(__dirname, 'test-turn.html'), (err, data) => {
+      if (err) {
+        res.writeHead(500);
+        res.end('Error loading test-turn.html');
+        return;
+      }
+      res.writeHead(200, {'Content-Type': 'text/html'});
+      res.end(data);
+    });
+    return;
+  }
+
   res.writeHead(404);
   res.end('Not found');
 });
