@@ -49,7 +49,10 @@ const httpServer = http.createServer((req, res) => {
       res.writeHead(200, {'Content-Type': 'text/html'});
       res.end(data);
     });
-  } else if (req.url === '/client.js') {
+    return;
+  }
+
+  if (req.url === '/client.js') {
     fs.readFile(path.join(__dirname, 'client.js'), (err, data) => {
       if (err) {
         res.writeHead(500);
@@ -59,10 +62,11 @@ const httpServer = http.createServer((req, res) => {
       res.writeHead(200, {'Content-Type': 'application/javascript'});
       res.end(data);
     });
-  } else {
-    res.writeHead(404);
-    res.end('Not found');
+    return;
   }
+
+  res.writeHead(404);
+  res.end('Not found');
 });
 
 // Create WebSocket server on same port as HTTP
