@@ -24,14 +24,22 @@ const httpServer = http.createServer((req, res) => {
     return;
   }
 
-  // Health check FIRST - Render checks this immediately
+  // Root path - INSTANT response for Render health check
+  if (req.url === '/') {
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.end('Rover WebRTC Server - OK');
+    return;
+  }
+
+  // Health check endpoint
   if (req.url === '/health') {
     res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(JSON.stringify({status: 'ok', clients: {mobile: !!mobileClient, pc: !!pcClient}}));
     return;
   }
 
-  if (req.url === '/' || req.url === '/index.html') {
+  // Dashboard
+  if (req.url === '/dashboard' || req.url === '/index.html') {
     fs.readFile(path.join(__dirname, 'index.html'), (err, data) => {
       if (err) {
         res.writeHead(500);
