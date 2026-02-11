@@ -8,8 +8,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-// Use PORT from environment (Render provides this) or default to 8083
-const PORT = process.env.PORT || 8083;
+// Use PORT from environment (Render provides this) or default to 9000
+const PORT = process.env.PORT || 9000;
 
 // Create HTTP server for web dashboard
 const httpServer = http.createServer((req, res) => {
@@ -114,19 +114,39 @@ wss.on('connection', (ws) => {
   });
 });
 
-// Start server
+// Start server - Render requires binding to 0.0.0.0 and the PORT env variable
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log('\n🚀 Rover WebRTC Cloud Server Started!\n');
   console.log('=====================================');
   console.log('Port:', PORT);
+  console.log('Host: 0.0.0.0');
   console.log('Environment:', process.env.NODE_ENV || 'development');
   console.log('=====================================\n');
-  console.log('Server is ready to accept connections!');
+  console.log('✅ Server is live and ready to accept connections!');
+  console.log('✅ HTTP server listening on port', PORT);
+  console.log('✅ WebSocket server ready');
+});
+
+// Error handling for server
+httpServer.on('error', (error) => {
+  console.error('❌ Server error:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+    process.exit(1);
+  }
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, closing server...');
+  httpServer.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('\nSIGINT received, closing server...');
   httpServer.close(() => {
     console.log('Server closed');
     process.exit(0);
