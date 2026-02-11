@@ -37,8 +37,15 @@ window.onload = () => {
 // Connect to signaling server
 function connectSignaling() {
     console.log('[PC] Connecting to signaling server...');
-    
-    ws = new WebSocket('ws://localhost:9000');
+
+    // Auto-detect WebSocket URL based on page URL
+    // If page is HTTPS, use WSS; if HTTP, use WS
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host; // includes hostname and port
+    const wsUrl = `${protocol}//${host}`;
+
+    console.log('[PC] WebSocket URL:', wsUrl);
+    ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
         console.log('[PC] Connected to signaling server');
