@@ -35,28 +35,11 @@
     <div id="results"></div>
 
     <script>
-        const TURN_SERVERS = [
-            {
-                urls: 'turn:standard.relay.metered.ca:80',
-                username: '919ce4bb2a1d5222c80d0cd0',
-                credential: 'JfmmY9P3NZQVvm71'
-            },
-            {
-                urls: 'turn:standard.relay.metered.ca:80?transport=tcp',
-                username: '919ce4bb2a1d5222c80d0cd0',
-                credential: 'JfmmY9P3NZQVvm71'
-            },
-            {
-                urls: 'turn:standard.relay.metered.ca:443',
-                username: '919ce4bb2a1d5222c80d0cd0',
-                credential: 'JfmmY9P3NZQVvm71'
-            },
-            {
-                urls: 'turns:standard.relay.metered.ca:443?transport=tcp',
-                username: '919ce4bb2a1d5222c80d0cd0',
-                credential: 'JfmmY9P3NZQVvm71'
-            }
-        ];
+        // TURN entries come from the server's /ice-servers endpoint
+        let TURN_SERVERS = [];
+        fetch('/ice-servers').then(r => r.json())
+            .then(list => { TURN_SERVERS = list.filter(s => String(s.urls).startsWith('turn')); })
+            .catch(e => console.warn('Could not load ICE servers', e));
 
         function log(message, type = 'info') {
             const div = document.createElement('div');

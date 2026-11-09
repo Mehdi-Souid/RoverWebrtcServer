@@ -1,31 +1,15 @@
 let ws = null;
 let peerConnection = null;
 
-const ICE_SERVERS = [
-    {urls: 'stun:stun.relay.metered.ca:80'},
-    {
-        urls: 'turn:standard.relay.metered.ca:80',
-        username: '919ce4bb2a1d5222c80d0cd0',
-        credential: 'JfmmY9P3NZQVvm71'
-    },
-    {
-        urls: 'turn:standard.relay.metered.ca:80?transport=tcp',
-        username: '919ce4bb2a1d5222c80d0cd0',
-        credential: 'JfmmY9P3NZQVvm71'
-    },
-    {
-        urls: 'turn:standard.relay.metered.ca:443',
-        username: '919ce4bb2a1d5222c80d0cd0',
-        credential: 'JfmmY9P3NZQVvm71'
-    },
-    {
-        urls: 'turns:standard.relay.metered.ca:443?transport=tcp',
-        username: '919ce4bb2a1d5222c80d0cd0',
-        credential: 'JfmmY9P3NZQVvm71'
-    }
-];
+// Loaded from the server's /ice-servers endpoint (TURN credentials live in server env vars)
+let ICE_SERVERS = [{urls: 'stun:stun.l.google.com:19302'}];
 
-window.onload = () => {
+window.onload = async () => {
+    try {
+        ICE_SERVERS = await (await fetch('/ice-servers')).json();
+    } catch (e) {
+        console.warn('Could not load ICE servers, using public STUN only', e);
+    }
     connectSignaling();
 };
 

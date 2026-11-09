@@ -65,6 +65,24 @@ const httpServer = http.createServer((req, res) => {
     return;
   }
 
+  // ICE servers for the browser clients, built from environment variables
+  // (TURN credentials stay on the server instead of in the client source)
+  if (req.url === '/ice-servers') {
+    const user = process.env.TURN_USERNAME;
+    const cred = process.env.TURN_CREDENTIAL;
+    const host = process.env.TURN_HOST || 'standard.relay.metered.ca';
+    const servers = [{urls: 'stun:stun.relay.metered.ca:80'}];
+    if (user && cred) {
+      for (const url of [`turn:${host}:80`, `turn:${host}:80?transport=tcp`,
+                         `turn:${host}:443`, `turns:${host}:443?transport=tcp`]) {
+        servers.push({urls: url, username: user, credential: cred});
+      }
+    }
+    res.writeHead(200, {'Content-Type': 'application/json'});
+    res.end(JSON.stringify(servers));
+    return;
+  }
+
   if (req.url === '/test-turn' || req.url === '/test-turn.html') {
     fs.readFile(path.join(__dirname, 'test-turn.html'), (err, data) => {
       if (err) {
